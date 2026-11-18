@@ -17,13 +17,13 @@ log = logging.getLogger(__name__)
 
 from .protocol import (
     VENDOR_MADCATZ, PRODUCT_MMO7_DONGLE, PRODUCT_MMO7_WIRED,
-    REPORT_SENSOR, REPORT_LIGHT, REPORT_RATE, REPORT_WAKE, REPORT_KEYS_NORMAL,
+    REPORT_SENSOR, REPORT_LIGHT, REPORT_RATE, REPORT_KEYS_NORMAL,
     REPORT_KEYS_FN, REPORT_MACRO, MACRO_REPORT_LEN, REPORT_FW_VER, REPORT_PROFILE,
     ButtonFunction, ButtonSetting, LightMode, PollingRate, MacroDefinition,
     BUTTON_MAP_ORDER,
-    build_query_packet, build_profile_packet, build_rate_packet, build_wake_packet,
+    build_query_packet, build_profile_packet, build_rate_packet,
     build_light_packet, build_sensor_packet, build_keys_packet,
-    parse_firmware, parse_wake_packet, light_mode_from_byte, build_keys_chunks,
+    parse_firmware, light_mode_from_byte, build_keys_chunks,
     build_macro_packet, build_macro_chunks, parse_macro_packet
 )
 
@@ -321,16 +321,6 @@ class MMO7Device:
         """Set polling rate on hardware (verified by reading it back)."""
         pkt = build_rate_packet(profile_id, rate)
         return self._write_verified("rate", profile_id, pkt, REPORT_RATE, 5)
-
-    def get_wake_mode(self) -> int:
-        """Query wireless wake mode (0 = Move, 1 = Key/Click)."""
-        res = self.query_feature(REPORT_WAKE, 8, profile_id=1)
-        return parse_wake_packet(res)
-
-    def set_wake_mode(self, mode: int) -> bool:
-        """Set wireless wake mode (0 = Move, 1 = Key/Click)."""
-        pkt = build_wake_packet(mode)
-        return self.send_feature(pkt)
 
     def get_light_settings(self, profile_id: int = 1) -> Dict:
         """Query RGB lighting configuration."""

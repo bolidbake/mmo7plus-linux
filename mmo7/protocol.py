@@ -18,7 +18,6 @@ PRODUCT_MMO7_WIRED = 0x0C19
 REPORT_SENSOR = 0x04       # DPI & sensor configuration (56 bytes)
 REPORT_LIGHT = 0x05        # RGB lighting configuration (15 bytes)
 REPORT_RATE = 0x06         # Polling rate configuration (9 bytes)
-REPORT_WAKE = 0x07         # Wake mode configuration (8 bytes)
 REPORT_KEYS_NORMAL = 0x08  # Normal layer button bindings (95 bytes)
 REPORT_KEYS_FN = 0x18      # Fn/Shift layer button bindings (95 bytes)
 KEYS_REPORT_LEN = 95
@@ -240,25 +239,6 @@ def build_rate_packet(profile_id: int, rate: PollingRate) -> bytes:
         (~interval) & 0xFF,
         0x00, 0x00, 0x00, 0x00
     ])
-
-
-def build_wake_packet(mode: int) -> bytes:
-    """
-    Build 8-byte packet for wireless wake mode (REPORT_WAKE = 0x07).
-    mode: 0 = Wake on Movement, 1 = Wake on Button Click (Key).
-    """
-    m = 1 if mode else 0
-    return bytes([REPORT_WAKE, 0x08, m, (~m) & 0xFF, 0x01, 0xFE, 0x00, 0x00])
-
-
-def parse_wake_packet(reply: Optional[bytes]) -> int:
-    """
-    Parse 8-byte reply for wake mode.
-    Returns 0 for Wake on Movement, 1 for Wake on Button Click.
-    """
-    if reply and len(reply) >= 3 and reply[0] == REPORT_WAKE:
-        return 1 if reply[2] != 0 else 0
-    return 0
 
 
 def build_light_packet(profile_id: int, mode: LightMode, speed: int,

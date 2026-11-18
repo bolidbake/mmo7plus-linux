@@ -1459,7 +1459,6 @@ class MainWindow(QMainWindow):
             "angle_snap": 1,
             "center_offset": 2
         }
-        self.wake_mode = 0
         self.light_data = {
             "mode": LightMode.Static,
             "speed": 3,
@@ -1563,7 +1562,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self._create_macro_tab(), "🎬 Macro Builder")
         self.tabs.addTab(self._create_dpi_tab(), "🎯 DPI && Sensor")
         self.tabs.addTab(self._create_lighting_tab(), "💡 RGB Lighting")
-        self.tabs.addTab(self._create_rate_tab(), "⚡ Polling Rate && Power")
+        self.tabs.addTab(self._create_rate_tab(), "⚡ Polling Rate")
         self.tabs.addTab(self._create_profile_tab(), "📁 Profile Manager")
         main_layout.addWidget(self.tabs, stretch=1)
 
@@ -3383,32 +3382,6 @@ class MainWindow(QMainWindow):
             vbox.addWidget(rb)
 
         layout.addWidget(grp_rate)
-
-        # Standby & Wake Mode Group (Report 0x07)
-        grp_wake = QGroupBox("Wireless Standby && Wake Mode (Report 0x07)")
-        wake_vbox = QVBoxLayout(grp_wake)
-        wake_vbox.setSpacing(10)
-
-        lbl_wake_desc = QLabel(
-            "Configure how the 2.4 GHz wireless sensor resumes from standby sleep:"
-        )
-        lbl_wake_desc.setStyleSheet("color: #a0a0b0; font-size: 11px;")
-        wake_vbox.addWidget(lbl_wake_desc)
-
-        self.wake_group = QButtonGroup(self)
-        self.rb_wake_move = QRadioButton("Wake on Movement (Instant response upon moving the mouse)")
-        self.rb_wake_key = QRadioButton("Wake on Button Click (Click to wake — prevents desk vibrations from waking mouse)")
-        self.wake_group.addButton(self.rb_wake_move, 0)
-        self.wake_group.addButton(self.rb_wake_key, 1)
-        self.rb_wake_move.setChecked(True)
-        wake_vbox.addWidget(self.rb_wake_move)
-        wake_vbox.addWidget(self.rb_wake_key)
-
-        lbl_wake_tip = QLabel("Click-to-wake saves battery and keeps the mouse asleep when accidentally bumped.")
-        lbl_wake_tip.setStyleSheet("color: #888899; font-size: 10px; font-style: italic;")
-        wake_vbox.addWidget(lbl_wake_tip)
-
-        layout.addWidget(grp_wake)
         layout.addStretch()
         return container
 
@@ -3726,7 +3699,6 @@ class MainWindow(QMainWindow):
                 sensor_data = device.get_sensor_settings(p_id)
                 light_data = device.get_light_settings(p_id)
                 rate_data = device.get_polling_rate(p_id)
-                wake_data = device.get_wake_mode()
                 keys_normal = device.get_keys(p_id, is_fn=False)
                 keys_fn = device.get_keys(p_id, is_fn=True)
                 bad = device.failed_reads(p_id)
@@ -3750,7 +3722,6 @@ class MainWindow(QMainWindow):
                     "sensor_data": sensor_data,
                     "light_data": light_data,
                     "rate_data": rate_data,
-                    "wake_data": wake_data,
                     "keys_normal": keys_normal,
                     "keys_fn": keys_fn,
                     "hw_macros": hw_macros,
@@ -3854,13 +3825,6 @@ class MainWindow(QMainWindow):
         btn = self.rate_group.button(int(self.rate_data))
         if btn:
             btn.setChecked(True)
-
-        # Restore Wake Mode
-        wake_mode = data.get("wake_data", 0)
-        if hasattr(self, "wake_group"):
-            btn_w = self.wake_group.button(wake_mode)
-            if btn_w:
-                btn_w.setChecked(True)
 
         if data["keys_normal"]:
             self.keys_normal = data["keys_normal"]
@@ -3970,11 +3934,8 @@ class MainWindow(QMainWindow):
         r, g, b = self.light_color
         sleep_time = self.slider_sleep.value()
 
-        # 3. Collect Polling Rate & Wake Mode
+        # 3. Collect Polling Rate
         rate = PollingRate(self.rate_group.checkedId())
-        wake_mode = self.wake_group.checkedId() if hasattr(self, "wake_group") else 0
-        if wake_mode < 0:
-            wake_mode = 0
 
         # 4. Commit any active Macro Builder edits and collect Buttons
         self._commit_macro_editor_fields()
@@ -4052,7 +4013,6 @@ class MainWindow(QMainWindow):
                     )),
                     ("light", lambda: device.set_light_settings(p_id, mode, speed, brightness, r, g, b, sleep_time)),
                     ("polling rate", lambda: device.set_polling_rate(p_id, rate)),
-                    ("wake mode", lambda: device.set_wake_mode(wake_mode)),
                     ("active profile", lambda: device.set_active_profile(p_id)),
                 ]
                 steps = macro_steps + key_steps + other_steps
@@ -4271,9 +4231,6 @@ class MainWindow(QMainWindow):
                 ],
                 "StageColors": [list(w["color"]) for w in self.dpi_stage_widgets]
             },
-            "Power": {
-                "WakeMode": self.wake_group.checkedId() if hasattr(self, "wake_group") else 0
-            },
             "Light": {
                 "Mode": int(self.combo_light_mode.currentIndex()),
                 "Speed": self.slider_speed.value(),
@@ -4464,8 +4421,6 @@ class MainWindow(QMainWindow):
             self.dpi_stage_widgets[0]["radio"].setChecked(True)
             if hasattr(self, "slider_rotary"):
                 self.slider_rotary.setValue(2)
-            if hasattr(self, "wake_group"):
-                self.rb_wake_move.setChecked(True)
             self.spin_aim.setValue(350)
             self.combo_light_mode.setCurrentIndex(1)
             self.light_color = (255, 0, 0)

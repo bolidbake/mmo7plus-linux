@@ -16,10 +16,9 @@ A native Linux PyQt6 configuration suite for the **Mad Catz M.M.O. 7+** gaming m
   - 4 independent DPI stages (`200–26,000 DPI` in `200 DPI` steps) with stage enable mask, stage colors, and **independent X / Y axis DPI scaling**.
   - **Sensor Angle Tuning (Rotary Angle Calibration)**: Interactive -30° to +30° wrist orientation correction with a real-time tracking axis tilt diagram.
   - Precision Aim (`EasyAim`) target DPI (`50–25,500 DPI`), Lift-Off Distance (`LOD`), and Linear Angle Snapping.
-- **RGB Lighting, Polling Rate & Wireless Power Management**:
+- **RGB Lighting & Hardware Polling Rate**:
   - Live lighting preview and configuration (`Off`, `Static`, `Breathing`, `Neon`, `Color Loop`), speed, brightness, and sleep timer.
   - Hardware polling rate selection (`125 Hz`, `250 Hz`, `500 Hz`, `1000 Hz`).
-  - **Wireless Standby & Wake Mode (`Report 0x07`)**: Toggle between *Wake on Movement* and *Wake on Button Click* (prevents desk vibrations from waking the mouse).
 - **Onboard Profile Manager & H.U.D. Themes**:
   - Switch between 5 hardware profiles, live battery/DPI/profile monitoring, and import/export `.json` or Windows `.profile` files.
   - Built-in industrial H.U.D. themes (*Mad Catz H.U.D. Crimson*, *Cyborg R.A.T. Orange*, *Stealth Ops Cyan*, *Venom Matrix Green*).

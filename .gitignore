@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Runtime logs & local backups
+*.log
+mmo7/debug.log
+*.bak
+*.backup
+*backup*.json
+*.pcapng
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/

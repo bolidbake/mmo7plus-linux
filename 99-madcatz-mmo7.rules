@@ -1,0 +1,8 @@
+# Udev rules for Mad Catz M.M.O. 7+
+# Allows user-space configuration tools to access HID feature reports without root privileges
+
+# Mad Catz M.M.O. 7+ Wireless Dongle (2.4 GHz)
+KERNEL=="hidraw*", ATTRS{idVendor}=="0738", ATTRS{idProduct}=="1c02", MODE="0666", TAG+="uaccess"
+
+# Mad Catz M.M.O. 7+ Wired Mode
+KERNEL=="hidraw*", ATTRS{idVendor}=="0738", ATTRS{idProduct}=="0c19", MODE="0666", TAG+="uaccess"

@@ -1,7 +1,7 @@
 # Maintainer: sena
 pkgname=mmo7-config
 pkgver=1.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Native Linux PyQt6 configurator for the Mad Catz M.M.O. 7+ gaming mouse"
 arch=('any')
 license=('MIT')

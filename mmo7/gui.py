@@ -357,13 +357,13 @@ QT_KEYPAD_TO_HID: Dict[int, int] = {
 HUD_THEMES: Dict[str, Dict[str, str]] = {
     "hud_crimson": {
         "name": "Mad Catz H.U.D. (Crimson)",
-        "bg_main": "#0d0d0f",
-        "bg_panel": "#191919",
-        "bg_card": "#131315",
-        "bg_control": "#202024",
-        "bg_hover": "#2b2b31",
-        "border": "#2f2f36",
-        "border_subtle": "#242429",
+        "bg_main": "#0c0c0e",
+        "bg_panel": "#0c0c0e",
+        "bg_card": "#0c0c0e",
+        "bg_control": "#16161a",
+        "bg_hover": "#222228",
+        "border": "#25252b",
+        "border_subtle": "#1a1a1f",
         "text": "#bcbcbc",
         "text_bright": "#ffffff",
         "text_muted": "#82828c",
@@ -377,13 +377,13 @@ HUD_THEMES: Dict[str, Dict[str, str]] = {
     },
     "cyborg_orange": {
         "name": "Cyborg R.A.T. (Industrial Orange)",
-        "bg_main": "#0e0e11",
-        "bg_panel": "#191919",
-        "bg_card": "#141417",
-        "bg_control": "#222228",
-        "bg_hover": "#2c2c34",
-        "border": "#32323c",
-        "border_subtle": "#26262e",
+        "bg_main": "#0d0d10",
+        "bg_panel": "#0d0d10",
+        "bg_card": "#0d0d10",
+        "bg_control": "#18181e",
+        "bg_hover": "#24242c",
+        "border": "#282832",
+        "border_subtle": "#1b1b22",
         "text": "#c4c4cc",
         "text_bright": "#ffffff",
         "text_muted": "#888896",
@@ -397,13 +397,13 @@ HUD_THEMES: Dict[str, Dict[str, str]] = {
     },
     "stealth_cyan": {
         "name": "Stealth Ops (Tactical Cyan)",
-        "bg_main": "#0b0e12",
-        "bg_panel": "#16191e",
-        "bg_card": "#111419",
-        "bg_control": "#1d222a",
-        "bg_hover": "#262d38",
-        "border": "#2c3542",
-        "border_subtle": "#202731",
+        "bg_main": "#0a0d11",
+        "bg_panel": "#0a0d11",
+        "bg_card": "#0a0d11",
+        "bg_control": "#141920",
+        "bg_hover": "#1d242e",
+        "border": "#222a36",
+        "border_subtle": "#161c24",
         "text": "#b8c4d0",
         "text_bright": "#ffffff",
         "text_muted": "#788696",
@@ -417,13 +417,13 @@ HUD_THEMES: Dict[str, Dict[str, str]] = {
     },
     "venom_green": {
         "name": "Venom Matrix (Acid Green)",
-        "bg_main": "#0b0f0c",
-        "bg_panel": "#161a17",
-        "bg_card": "#111512",
-        "bg_control": "#1d241f",
-        "bg_hover": "#263029",
-        "border": "#2b382e",
-        "border_subtle": "#1f2922",
+        "bg_main": "#0a0e0b",
+        "bg_panel": "#0a0e0b",
+        "bg_card": "#0a0e0b",
+        "bg_control": "#141d16",
+        "bg_hover": "#1d291f",
+        "border": "#223024",
+        "border_subtle": "#162018",
         "text": "#b8c8bc",
         "text_bright": "#ffffff",
         "text_muted": "#7a8c7e",
@@ -449,7 +449,7 @@ QMainWindow, QWidget {{
 }}
 
 QFrame#hudHeader {{
-    background-color: {t['bg_panel']};
+    background-color: {t['bg_main']};
     border: 1px solid {t['border']};
     border-top: 2px solid {t['primary']};
     border-radius: 2px;
@@ -457,21 +457,21 @@ QFrame#hudHeader {{
 }}
 
 QFrame#hudToolbar {{
-    background-color: {t['bg_panel']};
+    background-color: {t['bg_main']};
     border: 1px solid {t['border']};
     border-left: 3px solid {t['primary']};
     border-radius: 2px;
 }}
 
 QFrame#hudSidePanel {{
-    background-color: {t['bg_panel']};
+    background-color: {t['bg_main']};
     border: 1px solid {t['border']};
     border-top: 2px solid {t['primary']};
     border-radius: 2px;
 }}
 
 QFrame#hudSummaryCard {{
-    background-color: {t['bg_card']};
+    background-color: {t['bg_main']};
     border: 1px solid {t['border']};
     border-left: 3px solid {t['primary']};
     border-radius: 2px;
@@ -532,17 +532,17 @@ QLabel#hudMutedText {{
 QTabWidget::pane {{
     border: 1px solid {t['border']};
     border-top: 2px solid {t['primary']};
-    background-color: {t['bg_card']};
+    background-color: {t['bg_main']};
     border-radius: 2px;
     padding: 6px;
 }}
 
 QTabBar::tab {{
-    background-color: {t['bg_card']};
-    color: {t['text']};
+    background-color: {t['bg_main']};
+    color: {t['text_muted']};
     border: 1px solid {t['border_subtle']};
     border-bottom: none;
-    padding: 9px 18px;
+    padding: 8px 16px;
     margin-right: 3px;
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
@@ -551,11 +551,11 @@ QTabBar::tab {{
 }}
 
 QTabBar::tab:selected {{
-    background-color: {t['bg_panel']};
+    background-color: {t['bg_control']};
     color: {t['text_bright']};
     border: 1px solid {t['primary']};
     border-top: 3px solid {t['primary']};
-    border-bottom: 1px solid {t['bg_panel']};
+    border-bottom: 1px solid {t['bg_control']};
 }}
 
 QTabBar::tab:hover:!selected {{
@@ -575,7 +575,7 @@ QGroupBox {{
     padding-right: 12px;
     font-weight: bold;
     color: {t['primary']};
-    background-color: {t['bg_panel']};
+    background-color: transparent;
 }}
 
 QGroupBox::title {{
@@ -616,7 +616,7 @@ QPushButton:checked {{
 }}
 
 QPushButton:disabled {{
-    background-color: {t['bg_card']};
+    background-color: {t['bg_main']};
     color: {t['text_muted']};
     border-color: {t['border_subtle']};
 }}
@@ -691,7 +691,7 @@ QComboBox::drop-down {{
 }}
 
 QComboBox QAbstractItemView {{
-    background-color: {t['bg_panel']};
+    background-color: {t['bg_control']};
     color: {t['text_bright']};
     border: 1px solid {t['primary']};
     selection-background-color: {t['primary']};
@@ -699,7 +699,7 @@ QComboBox QAbstractItemView {{
 }}
 
 QListWidget#hudList {{
-    background-color: {t['bg_card']};
+    background-color: {t['bg_main']};
     border: 1px solid {t['border']};
     border-radius: 2px;
     padding: 3px;
@@ -725,7 +725,7 @@ QListWidget#hudList::item:selected {{
 }}
 
 QListWidget#hudMonoList {{
-    background-color: {t['bg_card']};
+    background-color: {t['bg_main']};
     border: 1px solid {t['border']};
     border-radius: 2px;
     padding: 4px;
@@ -822,8 +822,8 @@ QScrollArea {{
 }}
 
 QStatusBar {{
-    background-color: {t['bg_panel']};
-    color: {t['text']};
+    background-color: {t['bg_main']};
+    color: {t['text_muted']};
     border-top: 1px solid {t['border']};
 }}
 """
@@ -1361,6 +1361,11 @@ class SensorAngleDiagram(QWidget):
         super().__init__(parent)
         self.setFixedSize(130, 95)
         self.angle_deg = 0.0
+        self.theme: Dict[str, str] = HUD_THEMES["hud_crimson"]
+
+    def set_theme(self, theme: Dict[str, str]):
+        self.theme = theme
+        self.update()
 
     def set_angle(self, deg: float):
         self.angle_deg = float(deg)
@@ -1371,15 +1376,16 @@ class SensorAngleDiagram(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         rect = self.rect()
-        painter.fillRect(rect, QColor("#121216"))
-        painter.setPen(QPen(QColor("#2c2c36"), 1))
+        painter.fillRect(rect, QColor(self.theme.get("bg_main", "#0c0c0e")))
+        painter.setPen(QPen(QColor(self.theme.get("border", "#25252b")), 1))
         painter.drawRoundedRect(rect.adjusted(1, 1, -1, -1), 4, 4)
 
         cx = rect.width() / 2.0
         cy = (rect.height() - 14) / 2.0
 
         # Neutral reference grid (dashed)
-        pen_grid = QPen(QColor("#3d3d4a"), 1, Qt.PenStyle.DashLine)
+        grid_col = QColor(self.theme.get("border_subtle", "#3d3d4a"))
+        pen_grid = QPen(grid_col, 1, Qt.PenStyle.DashLine)
         painter.setPen(pen_grid)
         painter.drawLine(QPointF(12, cy), QPointF(rect.width() - 12, cy))
         painter.drawLine(QPointF(cx, 8), QPointF(cx, rect.height() - 20))
@@ -1389,14 +1395,15 @@ class SensorAngleDiagram(QWidget):
         painter.translate(cx, cy)
         painter.rotate(self.angle_deg)
 
-        pen_axis = QPen(QColor("#E60012"), 2)
+        accent_col = QColor(self.theme.get("primary", "#e60012"))
+        pen_axis = QPen(accent_col, 2)
         painter.setPen(pen_axis)
         r = 38.0
         painter.drawLine(QPointF(-r, 0), QPointF(r, 0))
         painter.drawLine(QPointF(0, -r * 0.6), QPointF(0, r * 0.6))
 
         # Center reticle dot
-        painter.setBrush(QColor("#E60012"))
+        painter.setBrush(accent_col)
         painter.drawEllipse(QPointF(0, 0), 2.5, 2.5)
 
         # Arrowhead indicator on horizontal tracking line
@@ -1410,7 +1417,8 @@ class SensorAngleDiagram(QWidget):
         painter.restore()
 
         # Angle text
-        painter.setPen(QColor("#ffffff" if abs(self.angle_deg) > 0.1 else "#888899"))
+        text_color = QColor(self.theme.get("text_bright", "#ffffff") if abs(self.angle_deg) > 0.1 else self.theme.get("text_muted", "#888899"))
+        painter.setPen(text_color)
         painter.setFont(QFont("sans-serif", 8, QFont.Weight.Bold))
         text = f"{self.angle_deg:+.0f}°" if abs(self.angle_deg) > 0.1 else "0°"
         painter.drawText(QRectF(0, rect.height() - 18, rect.width(), 16), Qt.AlignmentFlag.AlignCenter, text)
@@ -1525,6 +1533,8 @@ class MainWindow(QMainWindow):
             self.mouse_diagram.set_theme(theme)
         if hasattr(self, "light_preview"):
             self.light_preview.set_theme(theme)
+        if hasattr(self, "angle_diagram"):
+            self.angle_diagram.set_theme(theme)
         self._save_theme_key(theme_key)
 
     def _on_theme_selector_changed(self, _idx: int):
@@ -1551,9 +1561,9 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.addTab(self._create_buttons_tab(), "🎮 Button Mapping")
         self.tabs.addTab(self._create_macro_tab(), "🎬 Macro Builder")
-        self.tabs.addTab(self._create_dpi_tab(), "🎯 DPI & Sensor")
+        self.tabs.addTab(self._create_dpi_tab(), "🎯 DPI && Sensor")
         self.tabs.addTab(self._create_lighting_tab(), "💡 RGB Lighting")
-        self.tabs.addTab(self._create_rate_tab(), "⚡ Polling Rate & Power")
+        self.tabs.addTab(self._create_rate_tab(), "⚡ Polling Rate && Power")
         self.tabs.addTab(self._create_profile_tab(), "📁 Profile Manager")
         main_layout.addWidget(self.tabs, stretch=1)
 
@@ -3144,6 +3154,7 @@ class MainWindow(QMainWindow):
 
         rot_top = QHBoxLayout()
         self.angle_diagram = SensorAngleDiagram()
+        self.angle_diagram.set_theme(HUD_THEMES[self.current_theme_key])
         rot_top.addWidget(self.angle_diagram)
 
         rot_controls = QVBoxLayout()
@@ -3374,7 +3385,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(grp_rate)
 
         # Standby & Wake Mode Group (Report 0x07)
-        grp_wake = QGroupBox("Wireless Standby & Wake Mode (Report 0x07)")
+        grp_wake = QGroupBox("Wireless Standby && Wake Mode (Report 0x07)")
         wake_vbox = QVBoxLayout(grp_wake)
         wake_vbox.setSpacing(10)
 

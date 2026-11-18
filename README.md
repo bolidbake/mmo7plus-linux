@@ -87,7 +87,7 @@ sudo udevadm control --reload-rules; and sudo udevadm trigger
 python3 main.py
 ```
 
-### Optional Environment Variables (Fish Shell)
+### Optional Environment Variables
 
 ```fish
 # Enable verbose debug logging to stderr and ~/.config/mmo7-config/debug.log (disabled by default):

@@ -1351,6 +1351,71 @@ class MouseLightingPreviewWidget(QWidget):
         p.end()
 
 
+class SensorAngleDiagram(QWidget):
+    """
+    Interactive visual crosshair widget representing the sensor rotation angle.
+    Displays neutral horizontal/vertical axis in subtle gray and the rotated
+    tracking orientation in theme accent color.
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(130, 95)
+        self.angle_deg = 0.0
+
+    def set_angle(self, deg: float):
+        self.angle_deg = float(deg)
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        rect = self.rect()
+        painter.fillRect(rect, QColor("#121216"))
+        painter.setPen(QPen(QColor("#2c2c36"), 1))
+        painter.drawRoundedRect(rect.adjusted(1, 1, -1, -1), 4, 4)
+
+        cx = rect.width() / 2.0
+        cy = (rect.height() - 14) / 2.0
+
+        # Neutral reference grid (dashed)
+        pen_grid = QPen(QColor("#3d3d4a"), 1, Qt.PenStyle.DashLine)
+        painter.setPen(pen_grid)
+        painter.drawLine(QPointF(12, cy), QPointF(rect.width() - 12, cy))
+        painter.drawLine(QPointF(cx, 8), QPointF(cx, rect.height() - 20))
+
+        # Rotate painter for the active tracking axis
+        painter.save()
+        painter.translate(cx, cy)
+        painter.rotate(self.angle_deg)
+
+        pen_axis = QPen(QColor("#E60012"), 2)
+        painter.setPen(pen_axis)
+        r = 38.0
+        painter.drawLine(QPointF(-r, 0), QPointF(r, 0))
+        painter.drawLine(QPointF(0, -r * 0.6), QPointF(0, r * 0.6))
+
+        # Center reticle dot
+        painter.setBrush(QColor("#E60012"))
+        painter.drawEllipse(QPointF(0, 0), 2.5, 2.5)
+
+        # Arrowhead indicator on horizontal tracking line
+        path = QPainterPath()
+        path.moveTo(r, 0)
+        path.lineTo(r - 6, -3.5)
+        path.lineTo(r - 6, 3.5)
+        path.closeSubpath()
+        painter.drawPath(path)
+
+        painter.restore()
+
+        # Angle text
+        painter.setPen(QColor("#ffffff" if abs(self.angle_deg) > 0.1 else "#888899"))
+        painter.setFont(QFont("sans-serif", 8, QFont.Weight.Bold))
+        text = f"{self.angle_deg:+.0f}°" if abs(self.angle_deg) > 0.1 else "0°"
+        painter.drawText(QRectF(0, rect.height() - 18, rect.width(), 16), Qt.AlignmentFlag.AlignCenter, text)
+
+
 class SignalBridge(QObject):
     battery_changed = pyqtSignal(int)
     profile_changed = pyqtSignal(int)
@@ -1383,8 +1448,10 @@ class MainWindow(QMainWindow):
             "stage_mask": 0x0F,
             "stage_colors": [(255, 0, 0), (0, 128, 0), (0, 0, 255), (255, 255, 255)],
             "lift": 0,
-            "angle_snap": 1
+            "angle_snap": 1,
+            "center_offset": 2
         }
+        self.wake_mode = 0
         self.light_data = {
             "mode": LightMode.Static,
             "speed": 3,
@@ -1486,7 +1553,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self._create_macro_tab(), "🎬 Macro Builder")
         self.tabs.addTab(self._create_dpi_tab(), "🎯 DPI & Sensor")
         self.tabs.addTab(self._create_lighting_tab(), "💡 RGB Lighting")
-        self.tabs.addTab(self._create_rate_tab(), "⚡ Polling Rate")
+        self.tabs.addTab(self._create_rate_tab(), "⚡ Polling Rate & Power")
         self.tabs.addTab(self._create_profile_tab(), "📁 Profile Manager")
         main_layout.addWidget(self.tabs, stretch=1)
 
@@ -2909,19 +2976,38 @@ class MainWindow(QMainWindow):
             chk_enabled = QCheckBox()
             chk_enabled.setChecked(True)
 
-            slider_dpi = QSlider(Qt.Orientation.Horizontal)
-            slider_dpi.setRange(200, 26000)
-            slider_dpi.setSingleStep(200)
-            slider_dpi.setPageStep(400)
-            slider_dpi.setValue([800, 1600, 3200, 6400][i])
+            initial_dpi = [800, 1600, 3200, 6400][i]
 
-            spin_dpi = QSpinBox()
-            spin_dpi.setRange(200, 26000)
-            spin_dpi.setSingleStep(200)
-            spin_dpi.setValue(slider_dpi.value())
+            slider_x = QSlider(Qt.Orientation.Horizontal)
+            slider_x.setRange(200, 26000)
+            slider_x.setSingleStep(200)
+            slider_x.setPageStep(400)
+            slider_x.setValue(initial_dpi)
 
-            slider_dpi.valueChanged.connect(lambda v, s=spin_dpi: s.setValue((v // 200) * 200))
-            spin_dpi.valueChanged.connect(lambda v, sl=slider_dpi: sl.setValue((v // 200) * 200))
+            spin_x = QSpinBox()
+            spin_x.setRange(200, 26000)
+            spin_x.setSingleStep(200)
+            spin_x.setValue(initial_dpi)
+
+            slider_x.valueChanged.connect(lambda v, s=spin_x: s.setValue((v // 200) * 200))
+            spin_x.valueChanged.connect(lambda v, sl=slider_x: sl.setValue((v // 200) * 200))
+
+            slider_y = QSlider(Qt.Orientation.Horizontal)
+            slider_y.setRange(200, 26000)
+            slider_y.setSingleStep(200)
+            slider_y.setPageStep(400)
+            slider_y.setValue(initial_dpi)
+
+            spin_y = QSpinBox()
+            spin_y.setRange(200, 26000)
+            spin_y.setSingleStep(200)
+            spin_y.setValue(initial_dpi)
+
+            slider_y.valueChanged.connect(lambda v, s=spin_y: s.setValue((v // 200) * 200))
+            spin_y.valueChanged.connect(lambda v, sl=slider_y: sl.setValue((v // 200) * 200))
+
+            chk_split = QCheckBox("Split X/Y")
+            chk_split.setToolTip("Unlock separate horizontal (X) and vertical (Y) DPI sensitivities")
 
             btn_color = QPushButton()
             btn_color.setFixedSize(36, 24)
@@ -2934,17 +3020,63 @@ class MainWindow(QMainWindow):
             grid.addWidget(radio_active, row, 1, Qt.AlignmentFlag.AlignCenter)
             grid.addWidget(chk_enabled, row, 2, Qt.AlignmentFlag.AlignCenter)
 
-            dpi_box = QHBoxLayout()
-            dpi_box.addWidget(slider_dpi, stretch=1)
-            dpi_box.addWidget(spin_dpi)
-            grid.addLayout(dpi_box, row, 3)
+            v_dpi_box = QVBoxLayout()
+            v_dpi_box.setSpacing(3)
+
+            x_box = QHBoxLayout()
+            lbl_x = QLabel("X:")
+            lbl_x.setStyleSheet("font-weight: bold; min-width: 14px;")
+            x_box.addWidget(lbl_x)
+            x_box.addWidget(slider_x, stretch=1)
+            x_box.addWidget(spin_x)
+            x_box.addWidget(chk_split)
+            v_dpi_box.addLayout(x_box)
+
+            y_container = QWidget()
+            y_box = QHBoxLayout(y_container)
+            y_box.setContentsMargins(0, 0, 0, 0)
+            lbl_y = QLabel("Y:")
+            lbl_y.setStyleSheet("font-weight: bold; min-width: 14px;")
+            y_box.addWidget(lbl_y)
+            y_box.addWidget(slider_y, stretch=1)
+            y_box.addWidget(spin_y)
+            lbl_spacer = QLabel()
+            lbl_spacer.setFixedWidth(72)
+            y_box.addWidget(lbl_spacer)
+            y_container.setVisible(False)
+            v_dpi_box.addWidget(y_container)
+
+            def _bind_split(cs=chk_split, yc=y_container, sx=spin_x, sy=spin_y):
+                def _on_split_toggled(checked):
+                    yc.setVisible(checked)
+                    if not checked:
+                        sy.setValue(sx.value())
+                return _on_split_toggled
+
+            chk_split.toggled.connect(_bind_split(chk_split, y_container, spin_x, spin_y))
+
+            def _bind_x_sync(cs=chk_split, sy=spin_y):
+                def _on_x_changed(val):
+                    if not cs.isChecked():
+                        sy.setValue(val)
+                return _on_x_changed
+
+            spin_x.valueChanged.connect(_bind_x_sync(chk_split, spin_y))
+
+            grid.addLayout(v_dpi_box, row, 3)
             grid.addWidget(btn_color, row, 4, Qt.AlignmentFlag.AlignCenter)
 
             self.dpi_stage_widgets.append({
                 "radio": radio_active,
                 "checkbox": chk_enabled,
-                "slider": slider_dpi,
-                "spin": spin_dpi,
+                "chk_split": chk_split,
+                "slider": slider_x,
+                "spin": spin_x,
+                "slider_x": slider_x,
+                "spin_x": spin_x,
+                "slider_y": slider_y,
+                "spin_y": spin_y,
+                "y_container": y_container,
                 "btn_color": btn_color,
                 "color": col
             })
@@ -2977,8 +3109,9 @@ class MainWindow(QMainWindow):
         aim_layout.addWidget(self.lbl_aim_note)
         layout.addWidget(grp_aim)
 
-        # Sensor Visual Cards (LOD + Angle Snapping)
+        # Sensor Visual Cards (LOD + Angle Snapping + Sensor Rotary Angle Tuning)
         sensor_row = QHBoxLayout()
+        sensor_row.setSpacing(12)
 
         grp_lod = QGroupBox("Lift-Off Distance (LOD)")
         lod_vbox = QVBoxLayout(grp_lod)
@@ -3004,6 +3137,70 @@ class MainWindow(QMainWindow):
         self.chk_angle_snap = QCheckBox("Enable Linear Angle Snapping")
         snap_vbox.addWidget(self.chk_angle_snap)
         sensor_row.addWidget(grp_snap, stretch=1)
+
+        grp_rot = QGroupBox("Sensor Angle Tuning (Rotary Calibration)")
+        rot_vbox = QVBoxLayout(grp_rot)
+        rot_vbox.setSpacing(6)
+
+        rot_top = QHBoxLayout()
+        self.angle_diagram = SensorAngleDiagram()
+        rot_top.addWidget(self.angle_diagram)
+
+        rot_controls = QVBoxLayout()
+        lbl_rotary_title = QLabel("Rotation Offset:")
+        lbl_rotary_title.setStyleSheet("font-size: 11px; font-weight: bold;")
+        self.lbl_rotary_desc = QLabel("0° (Neutral Alignment)")
+        self.lbl_rotary_desc.setObjectName("hudAccentText")
+        self.lbl_rotary_desc.setStyleSheet("font-weight: bold;")
+
+        self.slider_rotary = QSlider(Qt.Orientation.Horizontal)
+        self.slider_rotary.setRange(0, 4)
+        self.slider_rotary.setValue(2)  # 2 = 0°
+        self.slider_rotary.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.slider_rotary.setTickInterval(1)
+
+        ANGLE_LABELS = {
+            0: (-30, "-30° (Inward Arc)"),
+            1: (-10, "-10° (Slight Inward)"),
+            2: (0, "0° (Neutral / Default)"),
+            3: (10, "+10° (Slight Outward)"),
+            4: (30, "+30° (Outward Arc)"),
+        }
+
+        def _on_rotary_changed(val):
+            deg, desc = ANGLE_LABELS.get(val, (0, "0° (Neutral / Default)"))
+            self.lbl_rotary_desc.setText(desc)
+            self.angle_diagram.set_angle(deg)
+
+        self.slider_rotary.valueChanged.connect(_on_rotary_changed)
+
+        rot_scale = QHBoxLayout()
+        lbl_m30 = QLabel("-30°")
+        lbl_m30.setStyleSheet("font-size: 9px; color: #888;")
+        lbl_zero = QLabel("0°")
+        lbl_zero.setStyleSheet("font-size: 9px; color: #888;")
+        lbl_p30 = QLabel("+30°")
+        lbl_p30.setStyleSheet("font-size: 9px; color: #888;")
+        rot_scale.addWidget(lbl_m30)
+        rot_scale.addStretch()
+        rot_scale.addWidget(lbl_zero)
+        rot_scale.addStretch()
+        rot_scale.addWidget(lbl_p30)
+
+        rot_controls.addWidget(lbl_rotary_title)
+        rot_controls.addWidget(self.lbl_rotary_desc)
+        rot_controls.addWidget(self.slider_rotary)
+        rot_controls.addLayout(rot_scale)
+
+        rot_top.addLayout(rot_controls, stretch=1)
+        rot_vbox.addLayout(rot_top)
+
+        lbl_rot_note = QLabel("Rotates tracking axis up to ±30° to align with natural wrist angle.")
+        lbl_rot_note.setStyleSheet("color: #a0a0b0; font-size: 10px; font-style: italic;")
+        lbl_rot_note.setWordWrap(True)
+        rot_vbox.addWidget(lbl_rot_note)
+
+        sensor_row.addWidget(grp_rot, stretch=1)
 
         layout.addLayout(sensor_row)
         layout.addStretch()
@@ -3148,14 +3345,14 @@ class MainWindow(QMainWindow):
         self.slider_speed.setEnabled(idx in (2, 3, 4))
         self._update_light_preview()
 
-    # --- Tab 4: Polling Rate ---
+    # --- Tab 4: Polling Rate & Power ---
 
     def _create_rate_tab(self) -> QWidget:
         container = QWidget()
         layout = QVBoxLayout(container)
         layout.setSpacing(16)
 
-        grp_rate = QGroupBox("USB / Wireless Polling Rate")
+        grp_rate = QGroupBox("Hardware Polling Rate (Report 0x06)")
         vbox = QVBoxLayout(grp_rate)
         vbox.setSpacing(12)
 
@@ -3175,6 +3372,32 @@ class MainWindow(QMainWindow):
             vbox.addWidget(rb)
 
         layout.addWidget(grp_rate)
+
+        # Standby & Wake Mode Group (Report 0x07)
+        grp_wake = QGroupBox("Wireless Standby & Wake Mode (Report 0x07)")
+        wake_vbox = QVBoxLayout(grp_wake)
+        wake_vbox.setSpacing(10)
+
+        lbl_wake_desc = QLabel(
+            "Configure how the 2.4 GHz wireless sensor resumes from standby sleep:"
+        )
+        lbl_wake_desc.setStyleSheet("color: #a0a0b0; font-size: 11px;")
+        wake_vbox.addWidget(lbl_wake_desc)
+
+        self.wake_group = QButtonGroup(self)
+        self.rb_wake_move = QRadioButton("Wake on Movement (Instant response upon moving the mouse)")
+        self.rb_wake_key = QRadioButton("Wake on Button Click (Click to wake — prevents desk vibrations from waking mouse)")
+        self.wake_group.addButton(self.rb_wake_move, 0)
+        self.wake_group.addButton(self.rb_wake_key, 1)
+        self.rb_wake_move.setChecked(True)
+        wake_vbox.addWidget(self.rb_wake_move)
+        wake_vbox.addWidget(self.rb_wake_key)
+
+        lbl_wake_tip = QLabel("Click-to-wake saves battery and keeps the mouse asleep when accidentally bumped.")
+        lbl_wake_tip.setStyleSheet("color: #888899; font-size: 10px; font-style: italic;")
+        wake_vbox.addWidget(lbl_wake_tip)
+
+        layout.addWidget(grp_wake)
         layout.addStretch()
         return container
 
@@ -3492,6 +3715,7 @@ class MainWindow(QMainWindow):
                 sensor_data = device.get_sensor_settings(p_id)
                 light_data = device.get_light_settings(p_id)
                 rate_data = device.get_polling_rate(p_id)
+                wake_data = device.get_wake_mode()
                 keys_normal = device.get_keys(p_id, is_fn=False)
                 keys_fn = device.get_keys(p_id, is_fn=True)
                 bad = device.failed_reads(p_id)
@@ -3515,6 +3739,7 @@ class MainWindow(QMainWindow):
                     "sensor_data": sensor_data,
                     "light_data": light_data,
                     "rate_data": rate_data,
+                    "wake_data": wake_data,
                     "keys_normal": keys_normal,
                     "keys_fn": keys_fn,
                     "hw_macros": hw_macros,
@@ -3562,8 +3787,14 @@ class MainWindow(QMainWindow):
 
         self.sensor_data = data["sensor_data"]
         for i, (slider_info, dpi_val) in enumerate(zip(self.dpi_stage_widgets, self.sensor_data["dpi_stages"])):
-            slider_info["slider"].setValue(dpi_val[0])
-            slider_info["spin"].setValue(dpi_val[0])
+            dx, dy = (dpi_val[0], dpi_val[1]) if isinstance(dpi_val, (tuple, list)) else (dpi_val, dpi_val)
+            slider_info["slider_x"].setValue(dx)
+            slider_info["spin_x"].setValue(dx)
+            slider_info["slider_y"].setValue(dy)
+            slider_info["spin_y"].setValue(dy)
+            is_split = (dx != dy)
+            slider_info["chk_split"].setChecked(is_split)
+            slider_info["y_container"].setVisible(is_split)
             is_enabled = bool(self.sensor_data["stage_mask"] & (1 << i))
             slider_info["checkbox"].setChecked(is_enabled)
             col = self.sensor_data["stage_colors"][i]
@@ -3578,6 +3809,23 @@ class MainWindow(QMainWindow):
 
         self.combo_lod.setCurrentIndex(1 if self.sensor_data.get("lift") else 0)
         self.chk_angle_snap.setChecked(bool(self.sensor_data.get("angle_snap")))
+
+        # Restore Sensor Angle Tuning
+        c_off = self.sensor_data.get("center_offset", 2)
+        if hasattr(self, "slider_rotary"):
+            self.slider_rotary.blockSignals(True)
+            self.slider_rotary.setValue(max(0, min(4, c_off)))
+            self.slider_rotary.blockSignals(False)
+            ANGLE_LABELS = {
+                0: (-30, "-30° (Inward Arc)"),
+                1: (-10, "-10° (Slight Inward)"),
+                2: (0, "0° (Neutral / Default)"),
+                3: (10, "+10° (Slight Outward)"),
+                4: (30, "+30° (Outward Arc)"),
+            }
+            deg, desc = ANGLE_LABELS.get(c_off, (0, "0° (Neutral / Default)"))
+            self.lbl_rotary_desc.setText(desc)
+            self.angle_diagram.set_angle(deg)
 
         self.light_data = data["light_data"]
         self.combo_light_mode.setCurrentIndex(int(self.light_data["mode"]))
@@ -3595,6 +3843,13 @@ class MainWindow(QMainWindow):
         btn = self.rate_group.button(int(self.rate_data))
         if btn:
             btn.setChecked(True)
+
+        # Restore Wake Mode
+        wake_mode = data.get("wake_data", 0)
+        if hasattr(self, "wake_group"):
+            btn_w = self.wake_group.button(wake_mode)
+            if btn_w:
+                btn_w.setChecked(True)
 
         if data["keys_normal"]:
             self.keys_normal = data["keys_normal"]
@@ -3684,8 +3939,9 @@ class MainWindow(QMainWindow):
         current_stage = 1
 
         for i, widgets in enumerate(self.dpi_stage_widgets):
-            val = widgets["spin"].value()
-            dpi_stages.append((val, val))
+            dx = widgets["spin_x"].value()
+            dy = widgets["spin_y"].value() if widgets["chk_split"].isChecked() else dx
+            dpi_stages.append((dx, dy))
             if widgets["checkbox"].isChecked():
                 stage_mask |= (1 << i)
             if widgets["radio"].isChecked():
@@ -3694,6 +3950,7 @@ class MainWindow(QMainWindow):
 
         lift = self.combo_lod.currentIndex()
         angle_snap = 1 if self.chk_angle_snap.isChecked() else 0
+        center_offset = self.slider_rotary.value() if hasattr(self, "slider_rotary") else 2
 
         # 2. Collect Lighting
         mode = LightMode(self.combo_light_mode.currentIndex())
@@ -3702,8 +3959,11 @@ class MainWindow(QMainWindow):
         r, g, b = self.light_color
         sleep_time = self.slider_sleep.value()
 
-        # 3. Collect Polling Rate
+        # 3. Collect Polling Rate & Wake Mode
         rate = PollingRate(self.rate_group.checkedId())
+        wake_mode = self.wake_group.checkedId() if hasattr(self, "wake_group") else 0
+        if wake_mode < 0:
+            wake_mode = 0
 
         # 4. Commit any active Macro Builder edits and collect Buttons
         self._commit_macro_editor_fields()
@@ -3776,10 +4036,12 @@ class MainWindow(QMainWindow):
 
                 other_steps = [
                     ("sensor", lambda: device.set_sensor_settings(
-                        p_id, dpi_stages, current_stage, stage_mask, stage_colors, lift, angle_snap
+                        p_id, dpi_stages, current_stage, stage_mask, stage_colors, lift, angle_snap,
+                        center_offset=center_offset
                     )),
                     ("light", lambda: device.set_light_settings(p_id, mode, speed, brightness, r, g, b, sleep_time)),
                     ("polling rate", lambda: device.set_polling_rate(p_id, rate)),
+                    ("wake mode", lambda: device.set_wake_mode(wake_mode)),
                     ("active profile", lambda: device.set_active_profile(p_id)),
                 ]
                 steps = macro_steps + key_steps + other_steps
@@ -3989,10 +4251,17 @@ class MainWindow(QMainWindow):
             "Sensor": {
                 "Lift": self.combo_lod.currentIndex(),
                 "AngleSnap": 1 if self.chk_angle_snap.isChecked() else 0,
+                "CenterOffset": self.slider_rotary.value() if hasattr(self, "slider_rotary") else 2,
                 "DpiOnOff": stage_mask,
                 "CurrentDpiLevel": current_stage,
-                "DpiStages": [w["spin"].value() for w in self.dpi_stage_widgets],
+                "DpiStages": [
+                    [w["spin_x"].value(), w["spin_y"].value() if w["chk_split"].isChecked() else w["spin_x"].value()]
+                    for w in self.dpi_stage_widgets
+                ],
                 "StageColors": [list(w["color"]) for w in self.dpi_stage_widgets]
+            },
+            "Power": {
+                "WakeMode": self.wake_group.checkedId() if hasattr(self, "wake_group") else 0
             },
             "Light": {
                 "Mode": int(self.combo_light_mode.currentIndex()),
@@ -4046,15 +4315,43 @@ class MainWindow(QMainWindow):
                     if 1 <= lvl <= 4:
                         self.dpi_stage_widgets[lvl - 1]["radio"].setChecked(True)
 
+                if "CenterOffset" in s and hasattr(self, "slider_rotary"):
+                    co = int(s["CenterOffset"])
+                    self.slider_rotary.setValue(max(0, min(4, co)))
+
                 if "DpiStages" in s:
                     for val, w in zip(s["DpiStages"], self.dpi_stage_widgets):
-                        w["slider"].setValue(int(val))
+                        if isinstance(val, (list, tuple)) and len(val) >= 2:
+                            w["slider_x"].setValue(int(val[0]))
+                            w["spin_x"].setValue(int(val[0]))
+                            w["slider_y"].setValue(int(val[1]))
+                            w["spin_y"].setValue(int(val[1]))
+                            is_split = (val[0] != val[1])
+                            w["chk_split"].setChecked(is_split)
+                            w["y_container"].setVisible(is_split)
+                        else:
+                            w["slider_x"].setValue(int(val))
+                            w["spin_x"].setValue(int(val))
+                            w["slider_y"].setValue(int(val))
+                            w["spin_y"].setValue(int(val))
+                            w["chk_split"].setChecked(False)
+                            w["y_container"].setVisible(False)
                 elif "DpiX" in s and isinstance(s["DpiX"], int):
                     # Windows H.U.D. .profile format packs 8 DPI stage bytes into a uint64
-                    dpi_bytes = struct.unpack("<8B", struct.pack("<Q", s["DpiX"] & 0xFFFFFFFFFFFFFFFF))
-                    for b_val, w in zip(dpi_bytes[:4], self.dpi_stage_widgets):
-                        if b_val > 0:
-                            w["slider"].setValue(b_val * 200)
+                    dpi_bytes_x = struct.unpack("<8B", struct.pack("<Q", s["DpiX"] & 0xFFFFFFFFFFFFFFFF))
+                    dpi_bytes_y = dpi_bytes_x
+                    if "DpiY" in s and isinstance(s["DpiY"], int):
+                        dpi_bytes_y = struct.unpack("<8B", struct.pack("<Q", s["DpiY"] & 0xFFFFFFFFFFFFFFFF))
+                    for bx, by, w in zip(dpi_bytes_x[:4], dpi_bytes_y[:4], self.dpi_stage_widgets):
+                        vx = (bx * 200) if bx > 0 else 800
+                        vy = (by * 200) if by > 0 else vx
+                        w["slider_x"].setValue(vx)
+                        w["spin_x"].setValue(vx)
+                        w["slider_y"].setValue(vy)
+                        w["spin_y"].setValue(vy)
+                        is_split = (vx != vy)
+                        w["chk_split"].setChecked(is_split)
+                        w["y_container"].setVisible(is_split)
 
                 stage_cols = s.get("StageColors", s.get("StageColorsHudCosmetic", s.get("Colors")))
                 if not stage_cols and "DpiColor" in s and isinstance(s["DpiColor"], list) and len(s["DpiColor"]) >= 12:
@@ -4146,9 +4443,18 @@ class MainWindow(QMainWindow):
         )
         if reply == QMessageBox.StandardButton.Yes:
             for i, dpi in enumerate((800, 1600, 3200, 6400)):
-                self.dpi_stage_widgets[i]["slider"].setValue(dpi)
+                self.dpi_stage_widgets[i]["slider_x"].setValue(dpi)
+                self.dpi_stage_widgets[i]["spin_x"].setValue(dpi)
+                self.dpi_stage_widgets[i]["slider_y"].setValue(dpi)
+                self.dpi_stage_widgets[i]["spin_y"].setValue(dpi)
+                self.dpi_stage_widgets[i]["chk_split"].setChecked(False)
+                self.dpi_stage_widgets[i]["y_container"].setVisible(False)
                 self.dpi_stage_widgets[i]["checkbox"].setChecked(True)
             self.dpi_stage_widgets[0]["radio"].setChecked(True)
+            if hasattr(self, "slider_rotary"):
+                self.slider_rotary.setValue(2)
+            if hasattr(self, "wake_group"):
+                self.rb_wake_move.setChecked(True)
             self.spin_aim.setValue(350)
             self.combo_light_mode.setCurrentIndex(1)
             self.light_color = (255, 0, 0)

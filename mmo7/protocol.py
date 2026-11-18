@@ -242,6 +242,25 @@ def build_rate_packet(profile_id: int, rate: PollingRate) -> bytes:
     ])
 
 
+def build_wake_packet(mode: int) -> bytes:
+    """
+    Build 8-byte packet for wireless wake mode (REPORT_WAKE = 0x07).
+    mode: 0 = Wake on Movement, 1 = Wake on Button Click (Key).
+    """
+    m = 1 if mode else 0
+    return bytes([REPORT_WAKE, 0x08, m, (~m) & 0xFF, 0x01, 0xFE, 0x00, 0x00])
+
+
+def parse_wake_packet(reply: Optional[bytes]) -> int:
+    """
+    Parse 8-byte reply for wake mode.
+    Returns 0 for Wake on Movement, 1 for Wake on Button Click.
+    """
+    if reply and len(reply) >= 3 and reply[0] == REPORT_WAKE:
+        return 1 if reply[2] != 0 else 0
+    return 0
+
+
 def build_light_packet(profile_id: int, mode: LightMode, speed: int,
                        brightness: int, r: int, g: int, b: int, sleep_time: int = 2) -> bytes:
     """

@@ -57,8 +57,8 @@ python3 main.py
 ### Optional Environment Variables (Fish Shell)
 
 ```fish
-# Disable debug logging (enabled by default in ~/.config/mmo7-config/debug.log):
-env MMO7_DEBUG=0 mmo7-config
+# Enable verbose debug logging to stderr and ~/.config/mmo7-config/debug.log (disabled by default):
+env MMO7_DEBUG=1 mmo7-config
 
 # Run in read-only mode (disable hardware writes):
 env MMO7_ALLOW_WRITES=0 mmo7-config

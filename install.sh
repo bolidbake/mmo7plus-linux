@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+if [[ -n "${BASH_SOURCE[0]:-}" ]] && [[ -f "${BASH_SOURCE[0]}" ]] && [[ -f "$(dirname "${BASH_SOURCE[0]}")/99-madcatz-mmo7.rules" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    cd "$SCRIPT_DIR"
+else
+    echo "==> Fetching latest repository files..."
+    TMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TMP_DIR"' EXIT
+    git clone --depth 1 https://github.com/bolidbake/mmo7plus-linux.git "$TMP_DIR"
+    cd "$TMP_DIR"
+fi
 
 echo "==> Installing udev rule to /etc/udev/rules.d/99-madcatz-mmo7.rules..."
 sudo install -Dm644 "99-madcatz-mmo7.rules" "/etc/udev/rules.d/99-madcatz-mmo7.rules"

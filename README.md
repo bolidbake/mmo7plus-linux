@@ -1,6 +1,36 @@
 # Mad Catz M.M.O. 7+ Configurator for Linux
 
+[![GitHub Release](https://img.shields.io/github/v/release/bolidbake/mmo7plus-linux?style=for-the-badge&logo=github&color=e60012)](https://github.com/bolidbake/mmo7plus-linux/releases/latest)
+[![Download Package](https://img.shields.io/badge/Download-Arch%20%2F%20CachyOS%20Package-1793d1?style=for-the-badge&logo=archlinux)](https://github.com/bolidbake/mmo7plus-linux/releases/latest/download/mmo7-config-1.1.0-3-any.pkg.tar.zst)
+[![License](https://img.shields.io/badge/License-MIT-333338?style=for-the-badge)](LICENSE)
+
 A native Linux PyQt6 configuration suite for the **Mad Catz M.M.O. 7+** gaming mouse, supporting both the **2.4 GHz wireless dongle (`0738:1c02`)** and **USB wired cable (`0738:0c19`)** with automatic hotplug priority switching.
+
+---
+
+## ⚡ Quick Download & Installation
+
+### Option 1: One-Command Install (CachyOS / Arch Linux)
+Install the pre-built package directly into your system with `pacman` (no manual compilation or git cloning required):
+
+```bash
+sudo pacman -U https://github.com/bolidbake/mmo7plus-linux/releases/latest/download/mmo7-config-1.1.0-3-any.pkg.tar.zst
+```
+
+Or download the `.pkg.tar.zst` file from the **[Releases Page](https://github.com/bolidbake/mmo7plus-linux/releases/latest)** and install it locally:
+
+```bash
+sudo pacman -U ~/Downloads/mmo7-config-1.1.0-3-any.pkg.tar.zst
+```
+
+### Option 2: One-Line Generic Linux Installer (Ubuntu, Fedora, Debian, etc.)
+Download and install the latest version automatically via `curl`:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/bolidbake/mmo7plus-linux/main/install.sh | bash
+```
+
+---
 
 ## Features
 
@@ -23,9 +53,11 @@ A native Linux PyQt6 configuration suite for the **Mad Catz M.M.O. 7+** gaming m
   - Switch between 5 hardware profiles, live battery/DPI/profile monitoring, and import/export `.json` or Windows `.profile` files.
   - Built-in industrial H.U.D. themes (*Mad Catz H.U.D. Crimson*, *Cyborg R.A.T. Orange*, *Stealth Ops Cyan*, *Venom Matrix Green*).
 
-## Full System Installation
+## Build & Install from Source (Optional)
 
-### Option A: Native CachyOS / Arch Linux Package (`makepkg`)
+If you prefer building directly from git instead of downloading the pre-built release package:
+
+### Option A: Native Arch / CachyOS Build (`makepkg`)
 
 Installs `/usr/bin/mmo7-config`, the `udev` rule (`/usr/lib/udev/rules.d/99-madcatz-mmo7.rules`), the desktop menu launcher (`madcatz-mmo7.desktop`), and application icon, tracked cleanly by `pacman`:
 

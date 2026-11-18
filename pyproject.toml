@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mmo7-config"
-version = "1.0.0"
+version = "1.1.0"
 description = "Native Linux PyQt6 configurator for the Mad Catz M.M.O. 7+ gaming mouse (wireless dongle & USB wired)"
 readme = "README.md"
 requires-python = ">=3.10"

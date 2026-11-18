@@ -22,40 +22,44 @@ A native Linux PyQt6 configuration suite for the **Mad Catz M.M.O. 7+** gaming m
   - Switch between 5 hardware profiles, live battery/DPI/profile monitoring, and import/export `.json` or Windows `.profile` files.
   - Built-in industrial H.U.D. themes (*Mad Catz H.U.D. Crimson*, *Cyborg R.A.T. Orange*, *Stealth Ops Cyan*, *Venom Matrix Green*).
 
-## Installation
+## Full System Installation
 
-### 1. Install Dependencies
+### Option A: Native CachyOS / Arch Linux Package (`makepkg`)
 
-**CachyOS / Arch Linux:**
+Installs `/usr/bin/mmo7-config`, the `udev` rule (`/usr/lib/udev/rules.d/99-madcatz-mmo7.rules`), the desktop menu launcher (`madcatz-mmo7.desktop`), and application icon, tracked cleanly by `pacman`:
+
 ```fish
-sudo pacman -S python-pyqt6
+sudo pacman -S --needed python-pyqt6 python-build python-installer python-setuptools python-wheel
+makepkg -si
+sudo udevadm control --reload-rules; and sudo udevadm trigger
 ```
 
-**Or via pip:**
+Once installed, launch **Mad Catz M.M.O. 7+ Configurator** from your desktop application launcher or run:
+
 ```fish
-pip install -r requirements.txt
+mmo7-config
 ```
 
-### 2. Install `udev` Permissions Rule (for non-root `/dev/hidraw` access)
+### Option B: Generic Linux Installer Script
+
+```fish
+./install.sh
+```
+
+### Option C: Run Directly Without Installing
 
 ```fish
 sudo cp 99-madcatz-mmo7.rules /etc/udev/rules.d/
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
-
-### 3. Run the Configurator
-
-```fish
+sudo udevadm control --reload-rules; and sudo udevadm trigger
 python3 main.py
 ```
 
 ### Optional Environment Variables (Fish Shell)
 
 ```fish
-# Disable debug logging (enabled by default):
-env MMO7_DEBUG=0 python3 main.py
+# Disable debug logging (enabled by default in ~/.config/mmo7-config/debug.log):
+env MMO7_DEBUG=0 mmo7-config
 
 # Run in read-only mode (disable hardware writes):
-env MMO7_ALLOW_WRITES=0 python3 main.py
+env MMO7_ALLOW_WRITES=0 mmo7-config
 ```

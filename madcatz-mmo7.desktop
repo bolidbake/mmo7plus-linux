@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Mad Catz M.M.O. 7+ Configurator
+GenericName=Gaming Mouse Configurator
+Comment=Configure buttons, macros, DPI stages, RGB lighting, and polling rate on the Mad Catz M.M.O. 7+
+Exec=mmo7-config
+Icon=madcatz-mmo7
+Terminal=false
+Categories=Settings;HardwareSettings;Utility;
+Keywords=mouse;madcatz;mmo7;dpi;macro;rgb;gaming;
+StartupWMClass=madcatz-mmo7

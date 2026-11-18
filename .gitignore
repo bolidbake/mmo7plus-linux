@@ -8,6 +8,11 @@ build/
 .venv/
 venv/
 
+# Arch / CachyOS makepkg build artifacts
+pkg/
+src/
+*.pkg.tar*
+
 # Runtime logs & local backups
 *.log
 mmo7/debug.log
